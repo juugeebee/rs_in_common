@@ -57,24 +57,31 @@ df_cch.drop(index_7_cch, inplace=True)
 df_psl['psl_name'] = df_psl.psl_name.str.split(";", expand=False)
 df_cch['cch_name'] = df_cch.cch_name.str.split(";", expand=False)
 
+print('{} lignes pour PSL.'.format(len(df_psl)))
+print('{} lignes pour CCH.'.format(len(df_cch)))
+
 ### Creer le dataframe final PSL
 
 df_list_psl = []
+compteur_PSL = 0
 
 for i in df_psl.index:
 
     if len(df_psl['psl_name'][i]) == 1:
-        if 'rs' in df_psl['psl_name'][i] :
+        rs_list_psl = df_psl['psl_name'][i]
+        if 'rs' in rs_list_psl[0] :
+            compteur_PSL = compteur_PSL +1
             line_list = []
             line_list.append(df_psl['psl_chrom'][i])
             line_list.append(df_psl['psl_start'][i])
             line_list.append(df_psl['psl_stop'][i])
-            line_list.append(rs)
+            line_list.append(rs_list_psl[0])
             df_list_psl.append(line_list)
 
     if len(df_psl['psl_name'][i]) > 1:
         for rs in df_psl['psl_name'][i]:
             if 'rs' in rs :
+                compteur_PSL = compteur_PSL +1
                 line_list = []
                 line_list.append(df_psl['psl_chrom'][i])
                 line_list.append(df_psl['psl_start'][i])
@@ -82,32 +89,40 @@ for i in df_psl.index:
                 line_list.append(rs)
                 df_list_psl.append(line_list)
 
+print('{} rs pour PSL.'.format(compteur_PSL))
+
 final_psl = pandas.DataFrame(df_list_psl, columns = header_psl)
 
 ### Creer le dataframe final CCH
 
 df_list_cch = []
+compteur_CCH = 0
 
 for i in df_cch.index:
 
     if len(df_cch['cch_name'][i]) == 1:
-        if 'rs' in df_cch['cch_name'][i] :
+        rs_list_cch = df_cch['cch_name'][i]
+        if 'rs' in rs_list_cch[0] :
+            compteur_CCH = compteur_CCH +1
             line_list = []
             line_list.append(df_cch['cch_chrom'][i])
             line_list.append(df_cch['cch_start'][i])
             line_list.append(df_cch['cch_stop'][i])
-            line_list.append(rs)
+            line_list.append(rs_list_cch[0])
             df_list_cch.append(line_list)
 
     if len(df_cch['cch_name'][i]) > 1:
         for rs in df_cch['cch_name'][i]:
             if 'rs' in rs :
+                compteur_CCH = compteur_CCH +1
                 line_list = []
                 line_list.append(df_cch['cch_chrom'][i])
                 line_list.append(df_cch['cch_start'][i])
                 line_list.append(df_cch['cch_stop'][i])
                 line_list.append(rs)
                 df_list_cch.append(line_list)
+
+print('{} rs pour CCH.'.format(compteur_CCH))
 
 final_cch = pandas.DataFrame(df_list_cch, columns = header_cch)
 
@@ -117,9 +132,15 @@ final = final_psl.merge(final_cch, left_on='psl_name', right_on='cch_name', how=
 del final['psl_chrom']
 del final['cch_chrom']
 
+print('{} rs en commun.'.format(len(final)))
+
+final = final[['psl_name','psl_start','psl_stop','cch_start','cch_stop','cch_name']]
+del final['cch_name']
+final = final.rename(columns={'psl_name': 'rs_name'})
+
 ### Export vers Excel
 
-final.to_excel("output.xlsx", sheet_name='rs_communs_PSL_CCH')
+final.to_excel("rs_en_commun.xlsx", sheet_name='rs_communs_PSL_CCH')
 print('Fichier Output genere.')  
 
 print('\n#######################################')
