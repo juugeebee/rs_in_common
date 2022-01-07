@@ -58,7 +58,7 @@ df_psl['psl_name'] = df_psl.psl_name.str.split(";", expand=False)
 df_cch['cch_name'] = df_cch.cch_name.str.split(";", expand=False)
 
 print('{} lignes pour PSL.'.format(len(df_psl)))
-print('{} lignes pour CCH.'.format(len(df_cch)))
+print('{} lignes pour CCH.\n'.format(len(df_cch)))
 
 ### Creer le dataframe final PSL
 
@@ -123,24 +123,29 @@ for i in df_cch.index:
                 df_list_cch.append(line_list)
 
 print('{} rs pour CCH.'.format(compteur_CCH))
+print('{} rs au total.\n'.format(compteur_PSL + compteur_CCH))
 
 final_cch = pandas.DataFrame(df_list_cch, columns = header_cch)
 
 ### DATAFRAME FINAL
 
-final = final_psl.merge(final_cch, left_on='psl_name', right_on='cch_name', how='inner')
+final = final_psl.merge(final_cch, left_on='psl_name', right_on='cch_name', how='outer')
 del final['psl_chrom']
 del final['cch_chrom']
+print('{} rs uniques.'.format(len(final)))
 
-print('{} rs en commun.'.format(len(final)))
+communs = final_psl.merge(final_cch, left_on='psl_name', right_on='cch_name', how='inner')
+print('{} rs en commun.'.format(len(communs)))
+print('{} rs en tout.\n'.format(len(final) + len(communs)))
+
 
 final = final[['psl_name','psl_start','psl_stop','cch_start','cch_stop','cch_name']]
-del final['cch_name']
-final = final.rename(columns={'psl_name': 'rs_name'})
+# del communs['cch_name']
+# final = communs.rename(columns={'psl_name': 'rs_name'})
 
 ### Export vers Excel
 
-final.to_excel("rs_en_commun.xlsx", sheet_name='rs_communs_PSL_CCH')
+final.to_excel("rs_PSL_CCH.xlsx", sheet_name='rs_PSL_CCH')
 print('Fichier Output genere.')  
 
 print('\n#######################################')
